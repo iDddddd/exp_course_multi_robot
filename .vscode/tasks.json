@@ -1,0 +1,23 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Catkin Make",
+            "type": "shell",
+            "command": "catkin_make",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run Rosdep",
+            "type": "shell",
+            "command": "sudo apt update; rosdep install --from-paths src -y --ignore-src",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        }
+    ]
+}

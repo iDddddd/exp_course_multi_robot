@@ -1,0 +1,67 @@
+# 2021-10-23
+
+1. 框架说明:
+多移动机器人实验平台硬件包括
+    (1)主机
+        ubuntu操作系统
+    (2)移动机器人
+        Turtlebot3 Burger PRO系列
+        每台移动机器人上均包含ubuntu操作系统,用户名均为robot,密码为robot;
+        移动机器人编号分别为robot_1, robot_2, robot_3,robot_4, robot_5......
+        对应在路由器上的固定ip分别为:192.168.51.211,192.168.51.212, 192.168.51.213, 192.168.51.214, 192.168.51.215......
+    (3)相机
+        Intel Realsense sr300
+
+软件包括:
+    (1)移动机器人运动驱动软件(软件包:turtlebot3_bringup, 分别在每台移动机器人上,需要远程控制打开)
+    (2)相机驱动软件(realsense2_camera,在主机上)
+    (3)二维码定位软件(aruco_detection,在主机上)
+    (4)多机编队软件(swarm_robot_tb3,在主机上) 所有的功能封装成类SwarmRobot,使用时只需引用头文件swarm_robot_control.h
+
+
+2. 使用步骤
+需要分别依次打开各软件包
+
+Step 1 打开移动机器人驱动软件
+    (1)主机上启动ros
+        主机上新开一个终端,运行:
+            roscore
+
+    (2)ssh远程进入移动机器人上的操作系统,打开移动机器人运动驱动
+        a) 打开一个移动机器人的电源,然后在主机上新开一个终端,运行:
+            ssh -l robot 192.168.51.211
+            或者 ssh robot@192.168.51.211
+                注意:192.168.51.211为该移动机器人连接路由器的固定ip的示例,具体ip值见上文说明
+		ssh前可通过ping测试连接,例如:ping 192.168.51.211
+            输入密码:robot
+        b) 进入该移动机器人系统后,启动该移动机器人的运动驱动:
+            roslaunch turtlebot3_bringup swarm_turtlebot3_core.launch
+        c) 重复a), b)操作,打开所有的移动机器人的运动驱动
+
+Step 2 打开相机驱动软件
+    主机上新开一个终端,运行:
+        roslaunch realsense2_camera rs_camera.launch
+
+Step 3 打开二维码定位软件
+    主机上新开一个终端,运行:
+        roslaunch aruco_detection aruco_detection.launch
+
+Step 4 打开多机编队软件
+    主机上新开一个终端,运行自行编写的main.cpp中的代码:
+        rosrun swarm_robot_tb3 swarm_robot_control
+
+
+示例代码:
+    启动示例的角度一致的代码
+        rosrun swarm_robot_tb3 swarm_robot_control_angle
+
+调试代码:
+    停止所有的移动机器人
+        rosrun swarm_robot_tb3 stop_robot
+
+3. 其他
+    (1)Ubuntu终端停止程序操作:按键"Ctrl+C"即可;若无法停止,可采取按键"Ctrl+Z"和按键"Ctrl+D"组合使用.
+    (2)录屏软件:kazam
+
+
+

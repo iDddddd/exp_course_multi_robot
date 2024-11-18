@@ -1,0 +1,12 @@
+%YAML:1.0
+---
+base_marker_rvec: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: f
+   data: [ -3.11669111e+00, 1.15137734e-02, -2.57967468e-02 ]
+base_marker_tvec: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: f
+   data: [ 1.70695972e+00, -2.71439135e-01, 3.17269492e+00 ]

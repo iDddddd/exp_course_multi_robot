@@ -1,0 +1,29 @@
+%YAML:1.0
+---
+
+intrinsics: !!opencv-matrix
+  rows: 3
+  cols: 3
+  dt: d
+  data: [ 1394.16, 0.00000, 946.086,
+          0.00000, 1394.16, 507.814,
+          0.00000, 0.00000, 1.00000 ]
+
+distortion: !!opencv-matrix
+  rows: 5
+  cols: 1
+  dt: d
+  data: [ 0.0, -0.0, 0.0, -0.0, 0.0]
+
+base_marker_rvec: !!opencv-matrix
+  rows: 3
+  cols: 1
+  dt: d
+  data: [ 0.0, -0.0, 0.0]
+
+base_marker_tvec: !!opencv-matrix
+  rows: 3
+  cols: 1
+  dt: d
+  data: [ 0.0, -0.0, 0.0]
+

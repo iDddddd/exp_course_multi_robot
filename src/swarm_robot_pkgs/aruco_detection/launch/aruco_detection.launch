@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="aruco_detection" type="aruco_detection" name="aruco_detection" output="screen">
+    <!-- <param name="calibration_file" type="string" value="$(find aruco_detection)/camera_param/sr300.yml" /> -->
+    <param name="calibration_file" type="string" value="$(find aruco_detection)/camera_param/d435.yml" />
+    <param name="base_marker_info" type="string" value="$(find aruco_detection)/camera_param/base_marker.yml" />
+
+  </node>
+
+</launch>

@@ -1,0 +1,25 @@
+{
+    "name": "ROS_noetic",
+    "build": {
+        "dockerfile": "my_ros_noetic.Dockerfile"
+    },
+    "initializeCommand": "xhost +",
+    "postCreateCommand": "echo 'source /workspaces/mr_ws/devel/setup.bash' >> ~/.bashrc && sudo apt update && rosdep install --from-paths /workspaces/mr_ws/src --ignore-src -r -y",
+    "remoteUser": "root",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-iot.vscode-ros",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.black-formatter",
+                "ms-vscode.cpptools-extension-pack"
+            ]
+        }
+    },
+    "runArgs": [
+        "--network=host",
+        "-e",
+        "DISPLAY=${env:DISPLAY}"
+    ]
+}
