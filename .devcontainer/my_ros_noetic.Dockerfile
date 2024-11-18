@@ -17,6 +17,7 @@ RUN apt-get update
 # 更新包列表并安装必要的工具
 RUN apt-get install -y \
     curl \
+    git \
     gnupg2 \
     lsb-release \
     software-properties-common

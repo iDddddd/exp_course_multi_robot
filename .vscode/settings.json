@@ -87,5 +87,6 @@
     },
     "C_Cpp.default.cppStandard": "c++11",
     "cmake.sourceDirectory": "/workspaces/mr_ws/src",
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "ros.distro": "humble"
 }
