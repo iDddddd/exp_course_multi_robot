@@ -6,31 +6,27 @@
  * 直到达到一致. 最后, 程序停止所有机器人的运动并输出成功消息.
  */
 
-#include <swarm_robot_control.h> // 包含自定义的头文件
-#include <time.h>
+#include <swarm_robot_control.h>
 
 int main(int argc, char **argv)
 {
-    clock_t start, end;
-    start = clock();
+    // 初始化ROS节点
+    ros::init(argc, argv, "swarm_robot_control_angle");
 
-    // 初始化ROS节点,节点名称为 "swarm_robot_control_formation"
-    ros::init(argc, argv, "swarm_robot_control_formation");
-
-    // 基于 Aruco 标记设置群体机器人的ID
+    // 机器人的id
     std::vector<int> swarm_robot_id{1, 2, 3, 4, 5};
 
     // 创建 SwarmRobot 对象
     SwarmRobot swarm_robot(swarm_robot_id);
 
-    double conv_th = 0.2; // 角度跟踪的阈值(小于该值认为到达)(rad)
+    double conv_th = 0.05; // 角度跟踪的阈值(小于该值认为到达)(rad)
 
     /* Velocity scale and threshold */
-    double MAX_W = 0.5;    // 最大角速度 (rad/s)
-    double MIN_W = 0.01; // 最小角速度 (rad/s)
+    double MAX_W = 1;    // 最大角速度 (rad/s)
+    double MIN_W = 0.05; // 最小角速度 (rad/s)
     // double MAX_V = 0.2;  // 最大线速度 (m/s)
     // double MIN_V = 0.01; // 最小线速度 (m/s)
-    double k_w = 0.5; // 期望角速度 = k_w * del_theta, del_theta 为某机器人与其他机器人的角度差
+    double k_w = 0.1; // 期望角速度 = k_w * del_theta, del_theta 为某机器人与其他机器人的角度差
     // double k_v = 0.1;
 
     // Laplace matrix
@@ -96,8 +92,6 @@ int main(int argc, char **argv)
     // 停止所有机器人
     swarm_robot.stopRobot();
 
-    end = clock();
     ROS_INFO_STREAM("Succeed!");
-    ROS_INFO_STREAM("Total time " << double(end - start) / CLOCKS_PER_SEC << "S");
     return 0;
 }
