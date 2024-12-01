@@ -24,7 +24,7 @@ def main():
     conv_w = 0.01
 
     # 目标速度
-    target_speed = [0.1, 0.1]
+    target_speed = [-0.01, 0.0]
     del_x = [target_speed[0]] * swarm_robot.robot_num
     del_y = [target_speed[1]] * swarm_robot.robot_num
 

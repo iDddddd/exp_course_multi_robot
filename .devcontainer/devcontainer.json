@@ -4,7 +4,7 @@
         "dockerfile": "my_ros_noetic.Dockerfile"
     },
     "initializeCommand": "xhost +",
-    "postCreateCommand": "echo 'source /workspaces/mr_ws/devel/setup.bash' >> ~/.bashrc && sudo apt update && rosdep install --from-paths /workspaces/mr_ws/src --ignore-src -r -y",
+    "postCreateCommand": "echo 'source /workspaces/mr_ws/devel/setup.bash\nexport ROS_HOSTNAME=192.168.51.100\nexport ROS_MASTER_URI=http://192.168.51.100:11311' >> ~/.bashrc && sudo apt update && rosdep install --from-paths /workspaces/mr_ws/src --ignore-src -r -y",
     "remoteUser": "root",
     "customizations": {
         "vscode": {
@@ -20,6 +20,7 @@
     "runArgs": [
         "--network=host",
         "-e",
-        "DISPLAY=${env:DISPLAY}"
+        "DISPLAY=${env:DISPLAY}",
+        "--privileged=true"
     ]
 }

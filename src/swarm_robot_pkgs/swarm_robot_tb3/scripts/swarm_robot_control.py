@@ -27,12 +27,15 @@ class SwarmRobot:
         # 机器人控制命令发布者
         self.cmd_vel_pub = [
             rospy.Publisher(
-                "/robot_{}/cmd_vel".format(swarm_robot_id[i]), Twist, queue_size=10
+                "/robot_{}/cmd_vel".format(swarm_robot_id[i]), Twist, queue_size=1
             )
             for i in range(self.robot_num)
         ]
         # ROS tf listener
         self.tf_listener = tf.TransformListener()
+
+        # 机器人移动速度
+        self.speed = [[0.0, 0.0] for _ in range(self.robot_num)]
 
     def get_robot_pose(self, index: int) -> tuple:
         """
@@ -190,7 +193,7 @@ class SwarmRobot:
         if v > 0:
             v = max(min(v, max_v), min_v)
         else:
-            v = min(max(v, -min_v), -max_v)
+            v = max(min(v, -min_v), -max_v)
         return v
 
     def u2vw(self, index, ux, uy) -> list:
@@ -228,22 +231,22 @@ class SwarmRobot:
         W = 1  # 角速度最大值参考参数
         V = 1  # 速度方向
 
-        # 判断速度方向
-        if angle > np.pi / 2:
-            angle = angle - np.pi
-            # 速度反向
-            V = -1
-        elif angle < -np.pi / 2:
-            angle = np.pi - angle
-            # 速度反向
-            V = -1
-        else:
-            # 速度正向
-            V = 1
+        # 判断速度方向(取消注释允许机器人反向运动)
+        # if angle > np.pi / 2:
+        #     angle = angle - np.pi
+        #     # 速度反向
+        #     V = -1
+        # elif angle < -np.pi / 2:
+        #     angle = np.pi - angle
+        #     # 速度反向
+        #     V = -1
+        # else:
+        #     # 速度正向
+        #     V = 1
 
         # 计算速度
         w = W * (angle / np.abs(angle)) * (np.exp(np.abs(angle)) - 1)
-        v = V * V * v0 * np.exp(-np.abs(angle))
+        v = V * v0 * np.exp(-np.abs(angle))
         if v > 0 and v > 0.5:
             v = 0.5
         elif v < 0 and v < -0.5:

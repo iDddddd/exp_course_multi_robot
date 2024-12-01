@@ -27,7 +27,7 @@ class SwarmRobot:
         # 机器人控制命令发布者
         self.cmd_vel_pub = [
             rospy.Publisher(
-                "/robot_{}/cmd_vel".format(swarm_robot_id[i]), Twist, queue_size=10
+                "/robot_{}/cmd_vel".format(swarm_robot_id[i]), Twist, queue_size=1
             )
             for i in range(self.robot_num)
         ]
@@ -192,7 +192,7 @@ class SwarmRobot:
         if v > 0:
             v = max(min(v, max_v), min_v)
         else:
-            v = min(max(v, -min_v), -max_v)
+            v = max(min(v, -min_v), -max_v)
         return v
 
     def u2vw(self, index, ux, uy) -> list:
