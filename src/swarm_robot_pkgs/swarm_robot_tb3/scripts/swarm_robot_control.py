@@ -83,7 +83,7 @@ class SwarmRobot:
             所有机器人的位姿
         """
         # 获取机器人的位姿, 直到所有机器人的位姿都获取到
-        current_robot_pose = []
+        current_robot_pose = [[0.0, 0.0, 0.0] for _ in range(self.robot_num)]
         self.flag_pose = [False for _ in range(self.robot_num)]
         while True:
             flag = all(self.flag_pose)
@@ -93,7 +93,7 @@ class SwarmRobot:
             for i in range(self.robot_num):
                 success, pose_robot = self.get_robot_pose(i)
                 if success:
-                    current_robot_pose.append(pose_robot)
+                    current_robot_pose[i] = pose_robot
                     self.flag_pose[i] = True
 
         # rospy.loginfo("Succeed getting pose!")
