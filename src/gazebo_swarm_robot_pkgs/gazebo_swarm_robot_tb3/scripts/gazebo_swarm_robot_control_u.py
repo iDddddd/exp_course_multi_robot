@@ -29,9 +29,9 @@ def main():
     del_y = [target_speed[1]] * swarm_robot.robot_num
 
     # 机器人当前位姿
-    current_robot_pose = [[0, 0, 0] for _ in range(swarm_robot.robot_num)]
+    current_robot_pose = [[0.0, 0.0, 0.0] for _ in range(swarm_robot.robot_num)]
     # 机器人当前速度
-    current_robot_speed = [[0, 0] for _ in range(swarm_robot.robot_num)]
+    current_robot_speed = [[0.0, 0.0] for _ in range(swarm_robot.robot_num)]
 
     # 运行直到各个机器人速度达到目标速度
     is_conv = False  # 是否到达

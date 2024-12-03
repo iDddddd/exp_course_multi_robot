@@ -33,12 +33,12 @@ def main():
     )
 
     # 存储机器人当前位姿和与其他机器人位姿差
-    cur_x = np.array([0] * swarm_robot.robot_num)
-    cur_y = np.array([0] * swarm_robot.robot_num)
-    cur_theta = np.array([0] * swarm_robot.robot_num)
-    del_x = np.array([0] * swarm_robot.robot_num)
-    del_y = np.array([0] * swarm_robot.robot_num)
-    del_theta = np.array([0] * swarm_robot.robot_num)
+    cur_x = np.zeros(swarm_robot.robot_num)
+    cur_y = np.zeros(swarm_robot.robot_num)
+    cur_theta = np.zeros(swarm_robot.robot_num)
+    del_x = np.zeros(swarm_robot.robot_num)
+    del_y = np.zeros(swarm_robot.robot_num)
+    del_theta = np.zeros(swarm_robot.robot_num)
 
     # 运行直到各个机器人角度相同
     is_conv = False  # 是否到达
