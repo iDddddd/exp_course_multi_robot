@@ -49,6 +49,7 @@ source devel/setup.bash
 ```sh
 echo "source /<path to workspace>/devel/setup/bash" > ~/.bashrc
 ```
+> `/<path to workspace>` 表示工程文件夹所在的路径
 
 ## 打开多机器人Gazebo仿真平台
 ```
