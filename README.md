@@ -22,7 +22,7 @@
    ```sh
    docker pull ros:noetic
    ```
-3. 在 VSCode 中打开 `mr_ws` 工程
+3. 在 VSCode 中打开 `mr_ws` 工程(文件夹名称可能不一样)
    ```sh
    cd mr_ws
    code .
@@ -34,7 +34,7 @@
 # 角度,位置一致性协议
 
 ## ROS工作空间创建及编译
-新建一个文件夹(如mr_ws),src放进去,然后在文件夹这个目录下,在终端运行catkin_make进行编译(每次改完代码也记得编译一下)
+在 `README.md` 所在的文件夹下启动终端, 在终端运行 `catkin_make` 进行编译(每次改完代码也记得编译一下)
 ```sh
 catkin_make
 ```
