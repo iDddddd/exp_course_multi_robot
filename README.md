@@ -22,7 +22,7 @@
    ```sh
    docker pull ros:noetic
    ```
-3. 在 VSCode 中打开 `mr_ws` 工程(文件夹名称可能不一样)
+3. 在 VSCode 中打开 `mr_ws` 工程(如果工程文件夹名称不一样， 需要修改为 `mr_ws`!!!)
    ```sh
    cd mr_ws
    code .
