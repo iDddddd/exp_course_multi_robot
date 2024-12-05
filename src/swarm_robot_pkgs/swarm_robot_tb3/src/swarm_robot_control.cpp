@@ -231,7 +231,7 @@ void SwarmRobot::U2VW(int index, double ux, double uy, double &v, double &w)
     // }
 
     // 计算速度
-    w = W * (angle / std::abs(angle)) * (std::exp(std::abs(angle)) - 1);
+    w = W * this->getSign(angle) * (std::exp(std::abs(angle)) - 1);
     v = V * v0 * std::exp(-std::abs(angle));
     if (v > 0 && v > 0.5)
     {
@@ -308,4 +308,20 @@ void SwarmRobot::moveRobotsbyU(Eigen::VectorXd del_x, Eigen::VectorXd del_y)
     //     this->moveRobot(i, v, w);
     // }
     // ros::Duration(0.05).sleep();
+}
+
+double SwarmRobot::getSign(double value)
+{
+    if (value > 0)
+    {
+        return 1.0; // 正数
+    }
+    else if (value < 0)
+    {
+        return -1.0; // 负数
+    }
+    else
+    {
+        return 0.0; // 零
+    }
 }

@@ -245,7 +245,7 @@ class SwarmRobot:
         #     V = 1
 
         # 计算速度
-        w = W * (angle / np.abs(angle)) * (np.exp(np.abs(angle)) - 1)
+        w = W * np.sign(angle) * (np.exp(np.abs(angle)) - 1)
         v = V * v0 * np.exp(-np.abs(angle))
         if v > 0 and v > 0.5:
             v = 0.5
