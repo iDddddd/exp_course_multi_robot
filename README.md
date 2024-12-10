@@ -47,7 +47,7 @@ source devel/setup.bash
 ```
 也可以把这句话加进系统的.bashrc文件里,这样每次打开终端都会自动运行这句语句:
 ```sh
-echo "source /<path to workspace>/devel/setup/bash" > ~/.bashrc
+echo "source /<path to workspace>/devel/setup/bash" >> ~/.bashrc
 ```
 > `/<path to workspace>` 表示工程文件夹所在的路径
 
