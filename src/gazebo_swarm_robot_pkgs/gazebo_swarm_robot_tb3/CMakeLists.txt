@@ -47,9 +47,27 @@ target_link_libraries(gazebo_swarm_robot_control_angle ${catkin_LIBRARIES})
 add_executable(gazebo_swarm_robot_control_u src/gazebo_swarm_robot_control_u.cpp src/gazebo_swarm_robot_control.cpp include/gazebo_swarm_robot_control.h)
 target_link_libraries(gazebo_swarm_robot_control_u ${catkin_LIBRARIES})
 
+add_executable(gazebo_swarm_robot_control_l src/gazebo_swarm_robot_control_l.cpp src/gazebo_swarm_robot_control.cpp include/gazebo_swarm_robot_control.h)
+target_link_libraries(gazebo_swarm_robot_control_l ${catkin_LIBRARIES})
+
+add_executable(gazebo_swarm_robot_control_lw src/gazebo_swarm_robot_control_lw.cpp src/gazebo_swarm_robot_control.cpp include/gazebo_swarm_robot_control.h)
+target_link_libraries(gazebo_swarm_robot_control_lw ${catkin_LIBRARIES})
+
+add_executable(gazebo_swarm_robot_control_circle src/gazebo_swarm_robot_control_circle.cpp src/gazebo_swarm_robot_control.cpp include/gazebo_swarm_robot_control.h)
+target_link_libraries(gazebo_swarm_robot_control_circle ${catkin_LIBRARIES})
+
+add_executable(gazebo_swarm_robot_control_triangle src/gazebo_swarm_robot_control_triangle.cpp src/gazebo_swarm_robot_control.cpp include/gazebo_swarm_robot_control.h)
+target_link_libraries(gazebo_swarm_robot_control_triangle ${catkin_LIBRARIES})
+
+
+
 ################################################################################
 # Install
 ################################################################################
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
 install(DIRECTORY launch models rviz worlds 
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

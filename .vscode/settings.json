@@ -83,7 +83,8 @@
         "variant": "cpp",
         "bit": "cpp",
         "core": "cpp",
-        "dense": "cpp"
+        "dense": "cpp",
+        "forward_list": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++11",
     "cmake.sourceDirectory": "/workspaces/mr_ws/src",

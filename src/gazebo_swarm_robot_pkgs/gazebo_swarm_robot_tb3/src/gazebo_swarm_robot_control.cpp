@@ -181,76 +181,44 @@ double SwarmRobot::checkVel(double v, double max_v, double min_v)
 void SwarmRobot::U2VW(int index, double ux, double uy, double &v, double &w)
 {
     const double pi = 3.141592653589793;
-    v = 0;
-    w = 0;
-
     // 获取当前机器人的姿态
     std::array<double, 3> pose_cur;
     getRobotPose(index, pose_cur);
     double theta_robot = pose_cur[2];
 
-    /* 速度 */
-    // 速度大小
     double v0 = std::sqrt(ux * ux + uy * uy);
-    // 速度方向
-    double theta_v = std::atan2(uy, ux);
+    double theta_v = std::atan2(uy, ux); // 直接计算速度方向
 
-    // 限定 angle 大小为 [-pi, pi]
+    // 限定角度范围 [-pi, pi]
     double angle = theta_v - theta_robot;
-    while (angle > pi || angle < -pi)
-    {
-        if (angle > pi)
-        {
-            angle = angle - 2 * pi;
-        }
-        else
-        {
-            angle = angle + 2 * pi;
-        }
-    }
+    while (angle > pi) angle -= 2 * pi;
+    while (angle < -pi) angle += 2 * pi;
 
-    double W = 1; // 角速度最大值参考参数
+    double W = 1; // 最大角速度参考值
     double V = 1; // 速度方向
-    // 判断速度方向(取消注释允许机器人反向运动)
-    // if (angle > pi / 2)
-    // {
-    //     angle = angle - pi;
-    //     // 速度反向
-    //     V = -1;
-    // }
-    // else if (angle < -pi / 2)
-    // {
-    //     angle = pi - angle;
-    //     // 速度反向
-    //     V = -1;
-    // }
-    // else
-    // {
-    //     // 速度正向
-    //     V = 1;
-    // }
 
-    // 计算速度
-    w = W * this->getSign(angle) * (std::exp(std::abs(angle)) - 1);
+    // 调整角度和速度方向
+    if (angle > pi / 2) {
+        angle -= pi;
+        V = -1;
+    } else if (angle < -pi / 2) {
+        angle += pi;
+        V = -1;
+    }
+
+    // 计算角速度和线速度
+    w = W * (angle / std::abs(angle)) * (std::exp(std::abs(angle)) - 1);
     v = V * v0 * std::exp(-std::abs(angle));
-    if (v > 0 && v > 0.5)
-    {
-        v = 0.5;
-    }
-    else if (v < 0 && v < -0.5)
-    {
-        v = -0.5;
-    }
-    else if (v == 0)
-    {
-        w = 0;
-    }
 
-    // std::cout << "//angle = " << angle << endl;
-    // std::cout << "//theta_v = " << theta_v << endl;
-    // std::cout << "//theta_robot = " << theta_robot << endl;
-    // std::cout << "//v = " << v << endl;
-    // std::cout << "//w = " << w << endl;
+    // 限制线速度幅值
+    if (v > 0.5) v = 0.5;
+    else if (v < -0.5) v = -0.5;
+    if (v == 0) w = 0;
+    std::cout << "//angle = " << angle << endl;
+    std::cout << "//theta_v = " << theta_v << endl;
+    std::cout << "//theta_robot = " << theta_robot << endl;
+    std::cout << "//v = " << v << endl;
+    std::cout << "//w = " << w << endl;
 }
 
 void SwarmRobot::moveRobotbyU(int index, double ux_0, double uy_0)
