@@ -124,6 +124,13 @@ public:
      */
     void moveRobotsbyU(Eigen::VectorXd del_x, Eigen::VectorXd del_y);
 
+    /**
+     * @brief 编队
+     * @param tar_x 期望位置x
+     * @param tar_y 期望位置y
+     */
+    void reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y);
+
 private:
     // ROS tf listener
     tf::TransformListener tf_listener;

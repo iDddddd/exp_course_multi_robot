@@ -6,290 +6,395 @@
 #include <gazebo_swarm_robot_control.h>
 
 SwarmRobot::SwarmRobot(std::vector<int> swarm_robot_id_)
-    : swarm_robot_id(swarm_robot_id_), speed(swarm_robot_id_.size())
+  : swarm_robot_id(swarm_robot_id_), speed(swarm_robot_id_.size())
 {
+  this->robot_num = swarm_robot_id.size();
 
-    this->robot_num = swarm_robot_id.size();
-
-    std::cout << "robot_num=" << robot_num << std::endl;
-    /* 初始化控制命令发布者 */
-    cmd_vel_pub.resize(this->robot_num);
-    for (int i = 0; i < this->robot_num; i++)
-    {
-        // 话题名称类似于:/robot_1/cmd_vel
-        std::string vel_topic = "/robot_" + std::to_string(swarm_robot_id_[i]) + "/cmd_vel";
-        cmd_vel_pub[i] = nh_.advertise<geometry_msgs::Twist>(vel_topic, 10);
-    }
+  std::cout << "robot_num=" << robot_num << std::endl;
+  /* 初始化控制命令发布者 */
+  cmd_vel_pub.resize(this->robot_num);
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    // 话题名称类似于:/robot_1/cmd_vel
+    std::string vel_topic = "/robot_" + std::to_string(swarm_robot_id_[i]) + "/cmd_vel";
+    cmd_vel_pub[i] = nh_.advertise<geometry_msgs::Twist>(vel_topic, 10);
+  }
 }
 
 SwarmRobot::~SwarmRobot()
 {
 }
 
-bool SwarmRobot::getRobotPose(int index, std::array<double, 3> &pose_cur)
+bool SwarmRobot::getRobotPose(int index, std::array<double, 3>& pose_cur)
 {
-    tf::StampedTransform transform;
-    std::string robot_frame = "robot_" + std::to_string(this->swarm_robot_id[index]) + "/base_footprint";
-    std::string base_marker = "base_marker";
+  tf::StampedTransform transform;
+  std::string robot_frame = "robot_" + std::to_string(this->swarm_robot_id[index]) + "/base_footprint";
+  std::string base_marker = "base_marker";
 
-    // 获取机器人的位姿
-    try
-    {
-        this->tf_listener.waitForTransform(base_marker, robot_frame, ros::Time(0), ros::Duration(0.5));
-        this->tf_listener.lookupTransform(base_marker, robot_frame, ros::Time(0), transform);
-    }
-    catch (tf::TransformException ex)
-    {
-        ROS_ERROR("%s", ex.what());
-        // ros::Duration(1.0).sleep();
-        return false;
-    }
+  // 获取机器人的位姿
+  try
+  {
+    this->tf_listener.waitForTransform(base_marker, robot_frame, ros::Time(0), ros::Duration(0.5));
+    this->tf_listener.lookupTransform(base_marker, robot_frame, ros::Time(0), transform);
+  }
+  catch (tf::TransformException ex)
+  {
+    ROS_ERROR("%s", ex.what());
+    // ros::Duration(1.0).sleep();
+    return false;
+  }
 
-    tf::Quaternion q = transform.getRotation();
-    tf::Matrix3x3 m(q);
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw);
+  tf::Quaternion q = transform.getRotation();
+  tf::Matrix3x3 m(q);
+  double roll, pitch, yaw;
+  m.getRPY(roll, pitch, yaw);
 
-    // pose_cur 仅包含 x, y, yaw
-    pose_cur[0] = transform.getOrigin().x();
-    pose_cur[1] = transform.getOrigin().y();
-    pose_cur[2] = yaw;
+  // pose_cur 仅包含 x, y, yaw
+  pose_cur[0] = transform.getOrigin().x();
+  pose_cur[1] = transform.getOrigin().y();
+  pose_cur[2] = yaw;
 
-    // ROS_INFO_STREAM("Get pose of robot_" << swarm_robot_id[index] << " is: x=" << pose_cur[0] << " y=" << pose_cur[1] << " theta=" << pose_cur[2]);
-    return true;
+  // ROS_INFO_STREAM("Get pose of robot_" << swarm_robot_id[index] << " is: x=" << pose_cur[0] << " y=" << pose_cur[1]
+  // << " theta=" << pose_cur[2]);
+  return true;
 }
 
-bool SwarmRobot::getRobotPose(std::vector<std::array<double, 3>> &current_robot_pose)
+bool SwarmRobot::getRobotPose(std::vector<std::array<double, 3>>& current_robot_pose)
 {
-    current_robot_pose.resize(this->robot_num);
-    std::vector<bool> flag_pose(this->robot_num, false);
+  current_robot_pose.resize(this->robot_num);
+  std::vector<bool> flag_pose(this->robot_num, false);
 
-    // 获取机器人的位姿, 直到所有机器人的位姿都获取到
-    bool flag = false;
-    while (!flag)
-    {
-        flag = true;
-        for (int i = 0; i < this->robot_num; i++)
-        {
-            flag = flag && flag_pose[i];
-        }
-        for (int i = 0; i < this->robot_num; i++)
-        {
-            std::array<double, 3> pose_robot;
-            if (getRobotPose(i, pose_robot))
-            {
-                current_robot_pose[i] = pose_robot;
-                flag_pose[i] = true;
-            }
-        }
-    }
-    // ROS_INFO_STREAM("Succeed getting pose!");
-    return true;
-}
-
-void SwarmRobot::getRobotSpeed(int index, std::array<double, 2> &speed)
-{
-    speed[0] = this->speed[index][0];
-    speed[1] = this->speed[index][1];
-}
-
-void SwarmRobot::getRobotSpeed(std::vector<std::array<double, 2>> &swarm_speed)
-{
-    swarm_speed.resize(this->robot_num);
+  // 获取机器人的位姿, 直到所有机器人的位姿都获取到
+  bool flag = false;
+  while (!flag)
+  {
+    flag = true;
     for (int i = 0; i < this->robot_num; i++)
     {
-        getRobotSpeed(i, swarm_speed[i]);
+      flag = flag && flag_pose[i];
     }
+    for (int i = 0; i < this->robot_num; i++)
+    {
+      std::array<double, 3> pose_robot;
+      if (getRobotPose(i, pose_robot))
+      {
+        current_robot_pose[i] = pose_robot;
+        flag_pose[i] = true;
+      }
+    }
+  }
+  // ROS_INFO_STREAM("Succeed getting pose!");
+  return true;
+}
+
+void SwarmRobot::getRobotSpeed(int index, std::array<double, 2>& speed)
+{
+  speed[0] = this->speed[index][0];
+  speed[1] = this->speed[index][1];
+}
+
+void SwarmRobot::getRobotSpeed(std::vector<std::array<double, 2>>& swarm_speed)
+{
+  swarm_speed.resize(this->robot_num);
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    getRobotSpeed(i, swarm_speed[i]);
+  }
 }
 
 bool SwarmRobot::moveRobot(int index, double v, double w)
 {
-    geometry_msgs::Twist vel_msg;
-    vel_msg.linear.x = v;
-    vel_msg.angular.z = w;
-    this->speed[index][0] = v;
-    this->speed[index][1] = w;
-    cmd_vel_pub[index].publish(vel_msg);
-    // ROS_INFO_STREAM("Move robot_" << swarm_robot_id[index] << " with v=" << v << " w=" << w);
-    return true;
+  geometry_msgs::Twist vel_msg;
+  vel_msg.linear.x = v;
+  vel_msg.angular.z = w;
+  this->speed[index][0] = v;
+  this->speed[index][1] = w;
+  cmd_vel_pub[index].publish(vel_msg);
+  // ROS_INFO_STREAM("Move robot_" << swarm_robot_id[index] << " with v=" << v << " w=" << w);
+  return true;
 }
 
-bool SwarmRobot::moveRobot(std::vector<std::array<double, 2>> &speed)
+bool SwarmRobot::moveRobot(std::vector<std::array<double, 2>>& speed)
 {
-    if (this->robot_num != speed.size())
-    {
-        ROS_ERROR_STREAM("The robot number does not equal the speed number!");
-        return false;
-    }
+  if (this->robot_num != speed.size())
+  {
+    ROS_ERROR_STREAM("The robot number does not equal the speed number!");
+    return false;
+  }
 
-    for (int i = 0; i < this->robot_num; i++)
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    if (!this->moveRobot(i, speed[i][0], speed[i][1]))
     {
-        if (!this->moveRobot(i, speed[i][0], speed[i][1]))
-        {
-            return false;
-        }
+      return false;
     }
-    return true;
+  }
+  return true;
 }
 
 bool SwarmRobot::stopRobot(int index)
 {
-    geometry_msgs::Twist vel_msg;
-    vel_msg.linear.x = 0.0;
-    vel_msg.angular.z = 0.0;
-    this->speed[index][0] = 0.0;
-    this->speed[index][1] = 0.0;
-    cmd_vel_pub[index].publish(vel_msg);
-    ROS_INFO_STREAM("Stop robot_" << swarm_robot_id[index]);
-    return true;
+  geometry_msgs::Twist vel_msg;
+  vel_msg.linear.x = 0.0;
+  vel_msg.angular.z = 0.0;
+  this->speed[index][0] = 0.0;
+  this->speed[index][1] = 0.0;
+  cmd_vel_pub[index].publish(vel_msg);
+  ROS_INFO_STREAM("Stop robot_" << swarm_robot_id[index]);
+  return true;
 }
 
 bool SwarmRobot::stopRobot()
 {
-    geometry_msgs::Twist vel_msg;
-    vel_msg.linear.x = 0.0;
-    vel_msg.angular.z = 0.0;
-    for (int i = 0; i < this->robot_num; i++)
-    {
-        cmd_vel_pub[i].publish(vel_msg);
-    }
-    ROS_INFO_STREAM("Stop all robots.");
-    return true;
+  geometry_msgs::Twist vel_msg;
+  vel_msg.linear.x = 0.0;
+  vel_msg.angular.z = 0.0;
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    cmd_vel_pub[i].publish(vel_msg);
+  }
+  ROS_INFO_STREAM("Stop all robots.");
+  return true;
 }
 
 double SwarmRobot::checkVel(double v, double max_v, double min_v)
 {
-    if (max_v <= 0 || min_v <= 0)
-    {
-        std::cout << "Error input of checkVel()" << std::endl;
-        return v;
-    }
-
-    if (v > 0)
-    {
-        v = std::max(v, min_v);
-        v = std::min(v, max_v);
-    }
-    else
-    {
-        v = std::min(v, -min_v);
-        v = std::max(v, -max_v);
-    }
+  if (max_v <= 0 || min_v <= 0)
+  {
+    std::cout << "Error input of checkVel()" << std::endl;
     return v;
+  }
+
+  if (v > 0)
+  {
+    v = std::max(v, min_v);
+    v = std::min(v, max_v);
+  }
+  else
+  {
+    v = std::min(v, -min_v);
+    v = std::max(v, -max_v);
+  }
+  return v;
 }
 
-void SwarmRobot::U2VW(int index, double ux, double uy, double &v, double &w)
+void SwarmRobot::U2VW(int index, double ux, double uy, double& v, double& w)
 {
-    const double pi = 3.141592653589793;
-    // 获取当前机器人的姿态
-    std::array<double, 3> pose_cur;
-    getRobotPose(index, pose_cur);
-    double theta_robot = pose_cur[2];
+  const double pi = 3.141592653589793;
+  // 获取当前机器人的姿态
+  std::array<double, 3> pose_cur;
+  getRobotPose(index, pose_cur);
+  double theta_robot = pose_cur[2];
 
-    double v0 = std::sqrt(ux * ux + uy * uy);
-    double theta_v = std::atan2(uy, ux); // 直接计算速度方向
+  double v0 = std::sqrt(ux * ux + uy * uy);
+  double theta_v = std::atan2(uy, ux);  // 直接计算速度方向
 
-    // 限定角度范围 [-pi, pi]
-    double angle = theta_v - theta_robot;
-    while (angle > pi) angle -= 2 * pi;
-    while (angle < -pi) angle += 2 * pi;
+  // 限定角度范围 [-pi, pi]
+  double angle = theta_v - theta_robot;
+  while (angle > pi)
+    angle -= 2 * pi;
+  while (angle < -pi)
+    angle += 2 * pi;
 
-    double W = 1; // 最大角速度参考值
-    double V = 1; // 速度方向
+  double W = 1;  // 最大角速度参考值
+  double V = 1;  // 速度方向
 
-    // 调整角度和速度方向
-    if (angle > pi / 2) {
-        angle -= pi;
-        V = -1;
-    } else if (angle < -pi / 2) {
-        angle += pi;
-        V = -1;
-    }
+  // 调整角度和速度方向
+  if (angle > pi / 2)
+  {
+    angle -= pi;
+    V = -1;
+  }
+  else if (angle < -pi / 2)
+  {
+    angle += pi;
+    V = -1;
+  }
 
-    // 计算角速度和线速度
-    w = W * (angle / std::abs(angle)) * (std::exp(std::abs(angle)) - 1);
-    v = V * v0 * std::exp(-std::abs(angle));
+  // 计算角速度和线速度
+  w = W * (angle / std::abs(angle)) * (std::exp(std::abs(angle)) - 1);
+  v = V * v0 * std::exp(-std::abs(angle));
 
-    // 限制线速度幅值
-    if (v > 0.5) v = 0.5;
-    else if (v < -0.5) v = -0.5;
-    if (v == 0) w = 0;
-    std::cout << "//angle = " << angle << endl;
-    std::cout << "//theta_v = " << theta_v << endl;
-    std::cout << "//theta_robot = " << theta_robot << endl;
-    std::cout << "//v = " << v << endl;
-    std::cout << "//w = " << w << endl;
+  // 限制线速度幅值
+  if (v > 0.5)
+    v = 0.5;
+  else if (v < -0.5)
+    v = -0.5;
+  if (v == 0)
+    w = 0;
+  // std::cout << "//angle = " << angle << endl;
+  // std::cout << "//theta_v = " << theta_v << endl;
+  // std::cout << "//theta_robot = " << theta_robot << endl;
+  // std::cout << "//v = " << v << endl;
+  // std::cout << "//w = " << w << endl;
 }
 
 void SwarmRobot::moveRobotbyU(int index, double ux_0, double uy_0)
 {
-    double v = 0;
-    double w = 0;
-    // ux_0 *= 0.5;
-    // uy_0 *= 0.5;
-    U2VW(index, ux_0, uy_0, v, w);
-    v = this->checkVel(v, MAX_V, MIN_V);
-    w = this->checkVel(w, MAX_W, MIN_W);
-    moveRobot(index, v, w);
+  double v = 0;
+  double w = 0;
+  // ux_0 *= 0.5;
+  // uy_0 *= 0.5;
+  U2VW(index, ux_0, uy_0, v, w);
+  v = this->checkVel(v, MAX_V, MIN_V);
+  w = this->checkVel(w, MAX_W, MIN_W);
+  moveRobot(index, v, w);
 }
 
 void SwarmRobot::moveRobotsbyU(Eigen::VectorXd del_x, Eigen::VectorXd del_y)
 {
-    // for (int i = 0; i < this->robot_num; i++) {
-    //     moveRobotbyU(i, del_x(i), del_y(i));
-    // }
-    // double v, w;
+  // for (int i = 0; i < this->robot_num; i++) {
+  //     moveRobotbyU(i, del_x(i), del_y(i));
+  // }
+  // double v, w;
 
-    // Eigen::VectorXd v_theta(this->robot_num);
-    // Eigen::VectorXd del_theta(this->robot_num);
-    // Eigen::VectorXd cur_theta(this->robot_num);
-    // std::vector<std::array<double, 3>> current_robot_pose(this->robot_num);
-    // double pi = 3.14159;
-    // this->getRobotPose(current_robot_pose);
-    for (int i = 0; i < this->robot_num; i++)
-    {
-        this->moveRobotbyU(i, del_x(i), del_y(i));
-    }
-    // for(int i = 0; i < this->robot_num; i++) {
-    //     cur_theta(i) = current_robot_pose[i][2]; // 提取角度信息
-    // }
+  // Eigen::VectorXd v_theta(this->robot_num);
+  // Eigen::VectorXd del_theta(this->robot_num);
+  // Eigen::VectorXd cur_theta(this->robot_num);
+  // std::vector<std::array<double, 3>> current_robot_pose(this->robot_num);
+  // double pi = 3.14159;
+  // this->getRobotPose(current_robot_pose);
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    this->moveRobotbyU(i, del_x(i), del_y(i));
+  }
+  // for(int i = 0; i < this->robot_num; i++) {
+  //     cur_theta(i) = current_robot_pose[i][2]; // 提取角度信息
+  // }
 
-    // for (int i = 0; i < this->robot_num; i++) {
-    //         v_theta(i) = std::atan2(del_y(i) , del_x(i));
-    //         del_theta(i) = -(cur_theta(i) - v_theta(i));
-    //         while (del_theta(i) < -pi or del_theta(i) > pi) {
-    //             if (del_theta(i) < -pi) del_theta(i) += 2 * pi;
-    //             if (del_theta(i) > pi) del_theta(i) -= 2 * pi;
-    //         }
-    //     }
-    //     /* Swarm robot move */
-    // for(int i = 0; i < this->robot_num; i++) {
-    //     if (std::fabs(del_theta(i)) > 0.1) {
-    //         w = del_theta(i) / std::fabs(del_theta(i)) * MAX_W;
-    //         v = 0;
-    //     }
-    //     else {
-    //         w = del_theta(i) / std::fabs(del_theta(i)) * MIN_W;
-    //         v = std::sqrt(std::pow(del_x(i),2) + std::pow(del_y(i),2));
-    //         v = this->checkVel(v, MAX_V, MIN_V);
-    //     }
-    //     this->moveRobot(i, v, w);
-    // }
-    // ros::Duration(0.05).sleep();
+  // for (int i = 0; i < this->robot_num; i++) {
+  //         v_theta(i) = std::atan2(del_y(i) , del_x(i));
+  //         del_theta(i) = -(cur_theta(i) - v_theta(i));
+  //         while (del_theta(i) < -pi or del_theta(i) > pi) {
+  //             if (del_theta(i) < -pi) del_theta(i) += 2 * pi;
+  //             if (del_theta(i) > pi) del_theta(i) -= 2 * pi;
+  //         }
+  //     }
+  //     /* Swarm robot move */
+  // for(int i = 0; i < this->robot_num; i++) {
+  //     if (std::fabs(del_theta(i)) > 0.1) {
+  //         w = del_theta(i) / std::fabs(del_theta(i)) * MAX_W;
+  //         v = 0;
+  //     }
+  //     else {
+  //         w = del_theta(i) / std::fabs(del_theta(i)) * MIN_W;
+  //         v = std::sqrt(std::pow(del_x(i),2) + std::pow(del_y(i),2));
+  //         v = this->checkVel(v, MAX_V, MIN_V);
+  //     }
+  //     this->moveRobot(i, v, w);
+  // }
+  // ros::Duration(0.05).sleep();
 }
 
 double SwarmRobot::getSign(double value)
 {
-    if (value > 0)
+  if (value > 0)
+  {
+    return 1.0;  // 正数
+  }
+  else if (value < 0)
+  {
+    return -1.0;  // 负数
+  }
+  else
+  {
+    return 0.0;  // 零
+  }
+}
+void SwarmRobot::reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y)
+{
+  //获取当前机器人的位置
+  std::vector<std::array<double, 3>> current_robot_pose(this->robot_num);
+  this->getRobotPose(current_robot_pose);
+  // 计算当前机器人的位置
+  Eigen::VectorXd cur_x(this->robot_num);
+  Eigen::VectorXd cur_y(this->robot_num);
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    cur_x(i) = current_robot_pose[i][0];
+    cur_y(i) = current_robot_pose[i][1];
+  }
+
+  //存储当前目标位置
+  Eigen::VectorXd tar_x_tmp = tar_x;
+  Eigen::VectorXd tar_y_tmp = tar_y;
+  // 初始化分配结果和目标是否已被访问
+  std::vector<int> allocation(this->robot_num, -1);
+  std::vector<double> min_distances(this->robot_num, std::numeric_limits<double>::max());
+  std::vector<int> target_IS(this->robot_num, -1);
+  bool update;
+  do
+  {
+    update = false;
+
+    for (int i = 0; i < this->robot_num; ++i)
     {
-        return 1.0; // 正数
+      if (allocation[i] != -1)
+        continue;
+      double min_distance = std::numeric_limits<double>::max();
+      int closest_target = -1;
+      for (int j = 0; j < this->robot_num; ++j)
+      {
+        double dx = cur_x[i] - tar_x[j];
+        double dy = cur_y[i] - tar_y[j];
+        double distance = std::sqrt(dx * dx + dy * dy);
+        if (distance < min_distance)
+        {
+          min_distance = distance;
+          closest_target = j;
+        }
+      }
+      if (closest_target != -1)
+      {
+        if (target_IS[closest_target] != -1)
+        {
+        //   cout << i << " " << min_distance << endl;
+        //   cout << "target_IS: " << target_IS[closest_target] << " ";
+          cout << min_distances[target_IS[closest_target]] << endl;
+          if (min_distance < min_distances[target_IS[closest_target]])
+          {
+            min_distances[target_IS[closest_target]] = std::numeric_limits<double>::max();
+            allocation[target_IS[closest_target]] = -1;
+            update = true;
+            // cout << "update" << endl;
+          }
+          else
+          {
+            min_distance = std::numeric_limits<double>::max();
+            for (int j = 0; j < this->robot_num; ++j)
+            {
+              if (target_IS[j] != -1)
+                continue;
+              double dx = cur_x[i] - tar_x[j];
+              double dy = cur_y[i] - tar_y[j];
+              double distance = std::sqrt(dx * dx + dy * dy);
+              if (distance < min_distance)
+              {
+                min_distance = distance;
+                closest_target = j;
+              }
+            }
+            // cout << "next: " << closest_target << endl;
+          }
+        }
+      }
+      target_IS[closest_target] = i;
+      min_distances[i] = min_distance;
+      allocation[i] = closest_target;
     }
-    else if (value < 0)
+
+    cout << "min_distances: ";
+    for (int i = 0; i < this->robot_num; ++i)
     {
-        return -1.0; // 负数
+      cout << min_distances[i] << " ";
     }
-    else
-    {
-        return 0.0; // 零
-    }
+    cout << endl;
+  } while (update);
+
+  // 重新分配目标位置
+  for (int i = 0; i < this->robot_num; ++i)
+  {
+    tar_x[i] = tar_x_tmp[allocation[i]];
+    tar_y[i] = tar_y_tmp[allocation[i]];
+  }
 }
