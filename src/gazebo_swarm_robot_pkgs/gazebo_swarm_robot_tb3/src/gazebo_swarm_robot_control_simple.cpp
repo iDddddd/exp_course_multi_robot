@@ -98,7 +98,7 @@ int main(int argc, char** argv)
   
   int time = 5*1000;
 
-  swarm_robot.speed_control(tar_x_speed, tar_y_speed,time);
+  swarm_robot.speed_control(tar_x_speed, tar_y_speed, lap, time);
 
   swarm_robot.stopRobot();
 

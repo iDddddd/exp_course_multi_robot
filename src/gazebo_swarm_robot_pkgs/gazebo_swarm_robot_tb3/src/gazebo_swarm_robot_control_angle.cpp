@@ -44,10 +44,19 @@ int main(int argc, char **argv)
     // Eigen::VectorXd del_x(swarm_robot.robot_num);
     // Eigen::VectorXd del_y(swarm_robot.robot_num);
     Eigen::VectorXd del_theta(swarm_robot.robot_num);
+    Eigen::VectorXd tar_angle(swarm_robot.robot_num);
 
     // 机器人当前位姿
     std::vector<std::array<double, 3>> current_robot_pose(swarm_robot.robot_num);
 
+    double tar_x_speed = -0.1;
+    double tar_y_speed = -0.1;
+
+    
+    // 目标角度
+    for (int i = 0; i < swarm_robot.robot_num; i++){
+        tar_angle(i) = std::atan2(tar_y_speed, tar_x_speed);
+    }
     /* 运行直到各个机器人角度相同 */
     bool is_conv = false; // 是否到达
     while (!is_conv)
@@ -61,7 +70,8 @@ int main(int argc, char **argv)
         }
 
         // 判断是否到达
-        del_theta = -lap * cur_theta;
+        // del_theta = -lap * (cur_theta - tar_angle);
+        del_theta = -(cur_theta - tar_angle);
         is_conv = true;
         for (int i = 0; i < swarm_robot_id.size(); i++)
         {

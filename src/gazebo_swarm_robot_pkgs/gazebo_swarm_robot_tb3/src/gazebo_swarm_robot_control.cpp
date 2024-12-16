@@ -154,6 +154,8 @@ bool SwarmRobot::stopRobot()
   vel_msg.angular.z = 0.0;
   for (int i = 0; i < this->robot_num; i++)
   {
+    this->speed[i][0] = 0.0;
+    this->speed[i][1] = 0.0;
     cmd_vel_pub[i].publish(vel_msg);
   }
   ROS_INFO_STREAM("Stop all robots.");
@@ -403,7 +405,7 @@ void SwarmRobot::reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y)
 }
 
 void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap,
-                             bool absolute)
+                             bool is_absolute)
 {
   /* 收敛阈值 */
   double conv_th = 0.05;  // 角度的阈值，单位弧度
@@ -434,7 +436,7 @@ void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd 
       cur_theta(i) = current_robot_pose[i][2];  // 提取角度信息
     }
     /* 判断是否达到收敛条件 */
-    if (absolute)
+    if (is_absolute)
     {
       //绝对位置
       del_x = -(cur_x - tar_x);  // 计算需要的x的变化
@@ -470,11 +472,11 @@ void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd 
     /* 等待一段时间以进行机器人移动 */
     ros::Duration(0.05).sleep();  // 暂停程序执行0.05秒，等待机器人移动
   }
-
+  cout<<"success get target position"<<endl;
   stopRobot();
 }
 
-void SwarmRobot::speed_control(const double tar_x_speed, const double tar_y_speed, int time)
+void SwarmRobot::speed_control(const double tar_x_speed, const double tar_y_speed, const Eigen::MatrixXd lap, int time)
 {
   // // 机器人当前速度
   // std::vector<std::array<double, 2>> current_robot_speed(this->robot_num);
@@ -484,12 +486,16 @@ void SwarmRobot::speed_control(const double tar_x_speed, const double tar_y_spee
   // Eigen::VectorXd cur_y_speed(this->robot_num);
   Eigen::VectorXd del_x(this->robot_num);
   Eigen::VectorXd del_y(this->robot_num);
+  Eigen::VectorXd tar_angle(this->robot_num);
 
   for (int i = 0; i < this->robot_num; i++)
   {
     del_x(i) = tar_x_speed;
     del_y(i) = tar_y_speed;
+    tar_angle(i) = atan2(tar_y_speed, tar_x_speed);
   }
+  angle_control(tar_angle, lap, true);
+
   auto start = system_clock::now();
   auto end = system_clock::now();
   auto duration = duration_cast<milliseconds>(end - start);
@@ -516,12 +522,57 @@ void SwarmRobot::speed_control(const double tar_x_speed, const double tar_y_spee
     end = system_clock::now();
     duration = duration_cast<milliseconds>(end - start);
   }
-  for (int i = 0; i < this->robot_num; i++)
+  
+  cout << "success get target speed" << time << " ms" << endl;
+  stopRobot();
+}
+
+void SwarmRobot::angle_control(const Eigen::VectorXd tar_angle, const Eigen::MatrixXd lap, bool is_absolute)
+{
+  // 机器人当前位姿
+  std::vector<std::array<double, 3>> current_robot_pose(this->robot_num);
+
+  Eigen::VectorXd cur_theta(this->robot_num);
+  Eigen::VectorXd del_theta(this->robot_num);
+
+  double conv_th = 0.05;  // 角度跟踪的阈值(小于该值认为到达)(rad)
+
+  /* 运行直到各个机器人角度相同 */
+  bool is_conv = false;  // 是否到达
+  while (!is_conv)
   {
-    del_x(i) = 0;
-    del_y(i) = 0;
+    // 获取机器人当前位姿
+    getRobotPose(current_robot_pose);
+    // 提取角度信息, 赋值给 cur_theta
+    for (int i = 0; i < this->robot_num; i++)
+    {
+      cur_theta(i) = current_robot_pose[i][2];
+    }
+    // 判断是否到达
+    if (is_absolute)
+      del_theta = -(cur_theta - tar_angle);
+    else
+      del_theta = -lap * (cur_theta - tar_angle);
+
+    is_conv = true;
+
+    for (int i = 0; i < this->robot_num; i++)
+    {
+      if (std::abs(del_theta(i)) > conv_th)
+        is_conv = false;
+    }
+    // 控制机器人运动
+    for (int i = 0; i < this->robot_num; i++)
+    {
+      double w = del_theta(i) * 0.5;
+      w = checkVel(w, MAX_W, MIN_W);
+      moveRobot(i, 0.0, w);
+    }
+
+    // 等待一段时间
+    ros::Duration(0.05).sleep();
   }
-  moveRobotsbyU(del_x, del_y);
-  cout << "Last " << time << " ms" << endl;
+  cout<<"success get target angle"<<endl;
+  // 停止所有机器人
   stopRobot();
 }

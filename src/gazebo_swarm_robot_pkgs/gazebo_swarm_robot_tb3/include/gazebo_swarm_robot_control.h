@@ -139,7 +139,7 @@ public:
      * @param lap Laplace matrix
      * @param absolute 是否使用绝对位置控制
      */
-    void pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap, bool absolute = false);
+    void pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap, bool is_absolute = false);
 
     /**
      * @brief 速度控制
@@ -147,7 +147,14 @@ public:
      * @param tar_y_speed 期望速度y
      * @param time 持续时间
      */
-    void speed_control(const double tar_x_speed,const double tar_y_speed,int time);
+    void speed_control(const double tar_x_speed,const double tar_y_speed, const Eigen::MatrixXd lap,int time);
+
+    /**
+     * @brief 角度控制
+     * @param tar_angle 期望角度
+     * @param is_absolute 是否使用绝对角度控制
+     */
+    void angle_control(const Eigen::VectorXd tar_angle,const Eigen::MatrixXd lap, bool is_absolute = false);
 
 
 private:
