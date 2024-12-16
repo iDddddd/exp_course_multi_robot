@@ -169,9 +169,9 @@ private:
     // 速度记录, 每一项包含 v 和 w
     std::vector<std::array<double, 2>> speed;
 
-    const double MAX_W = 1;    // 最大角速度(rad/s)
+    const double MAX_W = 1.57;    // 最大角速度(rad/s)
     const double MIN_W = 0.05; // 最小角速度(rad/s)
-    const double MAX_V = 0.2;  // 最大线性速度(m/s)
+    const double MAX_V = 0.5;  // 最大线性速度(m/s)
     const double MIN_V = 0.01; // 最小线性速度(m/s)
 
     /**

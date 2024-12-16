@@ -311,6 +311,9 @@ void SwarmRobot::reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y)
   //获取当前机器人的位置
   std::vector<std::array<double, 3>> current_robot_pose(this->robot_num);
   this->getRobotPose(current_robot_pose);
+  double ave_x = 0;
+  double ave_y = 0;
+
   // 计算当前机器人的位置
   Eigen::VectorXd cur_x(this->robot_num);
   Eigen::VectorXd cur_y(this->robot_num);
@@ -318,6 +321,15 @@ void SwarmRobot::reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y)
   {
     cur_x(i) = current_robot_pose[i][0];
     cur_y(i) = current_robot_pose[i][1];
+    ave_x += cur_x(i);
+    ave_y += cur_y(i);
+  }
+  ave_x /= this->robot_num;
+  ave_y /= this->robot_num;
+
+  for(int i = 0; i < this->robot_num; i++){
+    cur_x(i) -= ave_x;
+    cur_y(i) -= ave_y;
   }
 
   //存储当前目标位置
@@ -494,7 +506,8 @@ void SwarmRobot::speed_control(const double tar_x_speed, const double tar_y_spee
     del_y(i) = tar_y_speed;
     tar_angle(i) = atan2(tar_y_speed, tar_x_speed);
   }
-  angle_control(tar_angle, lap, true);
+  //先旋转到目标角度
+  //angle_control(tar_angle, lap, true);
 
   auto start = system_clock::now();
   auto end = system_clock::now();
