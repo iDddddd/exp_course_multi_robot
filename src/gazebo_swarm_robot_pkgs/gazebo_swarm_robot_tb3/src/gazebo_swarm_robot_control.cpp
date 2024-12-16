@@ -398,3 +398,71 @@ void SwarmRobot::reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y)
     tar_y[i] = tar_y_tmp[allocation[i]];
   }
 }
+
+void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap, bool absolute){
+
+  /* 收敛阈值 */
+  double conv_th = 0.05;  // 角度的阈值，单位弧度
+  double conv_x = 0.05;   // x的阈值，单位m
+  double conv_y = 0.05;
+
+  //获取当前机器人的位置
+  std::vector<std::array<double, 3>> current_robot_pose(this->robot_num);
+
+  /* 存储机器人当前位姿和与其他机器人位姿差的 Eigen 对象 */
+  Eigen::VectorXd cur_x(this->robot_num);
+  Eigen::VectorXd cur_y(this->robot_num);
+  Eigen::VectorXd cur_theta(this->robot_num);
+  Eigen::VectorXd del_x(this->robot_num);
+  Eigen::VectorXd del_y(this->robot_num);
+  Eigen::VectorXd del_theta(this->robot_num);
+
+  bool is_conv = false;
+
+  while (!is_conv)
+  {  // 当未达到收敛条件时执行以下代码
+
+    getRobotPose(current_robot_pose);  // 获取机器人姿态信息
+    for (int i = 0; i < this->robot_num; i++)
+    {
+      cur_x(i) = current_robot_pose[i][0];      // 提取位置信息
+      cur_y(i) = current_robot_pose[i][1];      // 提取位置信息
+      cur_theta(i) = current_robot_pose[i][2];  // 提取角度信息
+    }
+    /* 判断是否达到收敛条件 */
+    if(absolute){
+      //绝对位置
+      del_x = -(cur_x - tar_x);  // 计算需要的x的变化
+      del_y = -(cur_y - tar_y);  // 计算需要的y的变化
+    }else{
+      //相对位置  
+      del_x = - lap * (cur_x - tar_x);  // 计算需要的x的变化
+      del_y = - lap * (cur_y - tar_y);  // 计算需要的y的变化
+    }
+    is_conv = true;  // 假设已经达到收敛条件
+
+    for (int i = 0; i < this->robot_num; i++)
+    {
+      // cout << "del_x:" << del_x(i) << endl << "del_y:" << del_y(i) << endl;
+      if (std::abs(del_x(i)) > conv_x || std::abs(del_y(i)) > conv_y)
+      {
+        is_conv = false;  // 如果任何一个坐标的变化大于阈值，则认为未收敛
+      }
+    }
+
+    for (int i = 0; i < this->robot_num; i++)
+    {
+      double v = 0;
+      double w = 0;
+      double ux = del_x(i) * 0.2;
+      double uy = del_y(i) * 0.2;
+      U2VW(i, ux, uy, v, w);
+      moveRobot(i, v, w);
+    }
+
+    /* 等待一段时间以进行机器人移动 */
+    ros::Duration(0.05).sleep();  // 暂停程序执行0.05秒，等待机器人移动
+  }
+
+  stopRobot();
+}

@@ -59,6 +59,8 @@ target_link_libraries(gazebo_swarm_robot_control_circle ${catkin_LIBRARIES})
 add_executable(gazebo_swarm_robot_control_triangle src/gazebo_swarm_robot_control_triangle.cpp src/gazebo_swarm_robot_control.cpp include/gazebo_swarm_robot_control.h)
 target_link_libraries(gazebo_swarm_robot_control_triangle ${catkin_LIBRARIES})
 
+add_executable(gazebo_swarm_robot_control_simple src/gazebo_swarm_robot_control_simple.cpp src/gazebo_swarm_robot_control.cpp include/gazebo_swarm_robot_control.h)
+target_link_libraries(gazebo_swarm_robot_control_simple ${catkin_LIBRARIES})
 
 
 ################################################################################

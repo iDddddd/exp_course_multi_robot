@@ -131,6 +131,15 @@ public:
      */
     void reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y);
 
+    /**
+     * @brief 位置控制
+     * @param tar_x 期望位置x
+     * @param tar_y 期望位置y
+     * @param lap Laplace matrix
+     * @param absolute 是否使用绝对位置控制
+     */
+    void pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap, bool absolute = false);
+
 private:
     // ROS tf listener
     tf::TransformListener tf_listener;
