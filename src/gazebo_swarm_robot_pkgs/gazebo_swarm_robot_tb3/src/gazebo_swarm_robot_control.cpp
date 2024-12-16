@@ -5,6 +5,9 @@
 
 #include <gazebo_swarm_robot_control.h>
 
+using namespace std;
+using namespace chrono;
+
 SwarmRobot::SwarmRobot(std::vector<int> swarm_robot_id_)
   : swarm_robot_id(swarm_robot_id_), speed(swarm_robot_id_.size())
 {
@@ -348,8 +351,8 @@ void SwarmRobot::reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y)
       {
         if (target_IS[closest_target] != -1)
         {
-        //   cout << i << " " << min_distance << endl;
-        //   cout << "target_IS: " << target_IS[closest_target] << " ";
+          //   cout << i << " " << min_distance << endl;
+          //   cout << "target_IS: " << target_IS[closest_target] << " ";
           cout << min_distances[target_IS[closest_target]] << endl;
           if (min_distance < min_distances[target_IS[closest_target]])
           {
@@ -399,8 +402,9 @@ void SwarmRobot::reallocation(Eigen::VectorXd& tar_x, Eigen::VectorXd& tar_y)
   }
 }
 
-void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap, bool absolute){
-
+void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap,
+                             bool absolute)
+{
   /* 收敛阈值 */
   double conv_th = 0.05;  // 角度的阈值，单位弧度
   double conv_x = 0.05;   // x的阈值，单位m
@@ -430,14 +434,17 @@ void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd 
       cur_theta(i) = current_robot_pose[i][2];  // 提取角度信息
     }
     /* 判断是否达到收敛条件 */
-    if(absolute){
+    if (absolute)
+    {
       //绝对位置
       del_x = -(cur_x - tar_x);  // 计算需要的x的变化
       del_y = -(cur_y - tar_y);  // 计算需要的y的变化
-    }else{
-      //相对位置  
-      del_x = - lap * (cur_x - tar_x);  // 计算需要的x的变化
-      del_y = - lap * (cur_y - tar_y);  // 计算需要的y的变化
+    }
+    else
+    {
+      //相对位置
+      del_x = -lap * (cur_x - tar_x);  // 计算需要的x的变化
+      del_y = -lap * (cur_y - tar_y);  // 计算需要的y的变化
     }
     is_conv = true;  // 假设已经达到收敛条件
 
@@ -464,5 +471,57 @@ void SwarmRobot::pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd 
     ros::Duration(0.05).sleep();  // 暂停程序执行0.05秒，等待机器人移动
   }
 
+  stopRobot();
+}
+
+void SwarmRobot::speed_control(const double tar_x_speed, const double tar_y_speed, int time)
+{
+  // // 机器人当前速度
+  // std::vector<std::array<double, 2>> current_robot_speed(this->robot_num);
+
+  // /* 存储机器人当前速度和与其他机器人速度差的 Eigen 对象 */
+  // Eigen::VectorXd cur_x_speed(this->robot_num);
+  // Eigen::VectorXd cur_y_speed(this->robot_num);
+  Eigen::VectorXd del_x(this->robot_num);
+  Eigen::VectorXd del_y(this->robot_num);
+
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    del_x(i) = tar_x_speed;
+    del_y(i) = tar_y_speed;
+  }
+  auto start = system_clock::now();
+  auto end = system_clock::now();
+  auto duration = duration_cast<milliseconds>(end - start);
+
+  /* 运行直到各个机器人速度达到目标速度 */
+  while (duration < milliseconds(time))
+  {
+    // // 获取机器人当前速度
+    // getRobotSpeed(current_robot_speed);
+
+    // for (int i = 0; i < this->robot_num; i++)
+    // {
+    //   cur_x_speed(i) = current_robot_speed[i][0];  // 提取位置信息
+    //   cur_y_speed(i) = current_robot_speed[i][1];  // 提取位置信息
+    // }
+
+    // 移动机器人
+    moveRobotsbyU(del_x, del_y);
+
+    // 等待一段时间
+    ros::Duration(0.05).sleep();
+
+    //到达设定时间跳出循环
+    end = system_clock::now();
+    duration = duration_cast<milliseconds>(end - start);
+  }
+  for (int i = 0; i < this->robot_num; i++)
+  {
+    del_x(i) = 0;
+    del_y(i) = 0;
+  }
+  moveRobotsbyU(del_x, del_y);
+  cout << "Last " << time << " ms" << endl;
   stopRobot();
 }

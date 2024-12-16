@@ -30,10 +30,6 @@ int main(int argc, char** argv)
   double conv_y = 0.05;
 
   /* Velocity scale and threshold */
-  double MAX_W = 1;     // 最大角速度 (rad/s)
-  double MIN_W = 0.05;  // 最小角速度 (rad/s)
-  double MAX_V = 0.2;   // 最大线速度 (m/s)
-  double MIN_V = 0.01;  // 最小线速度 (m/s)
   double k_w = 0.1;     // 期望角速度 = k_w * del_theta, del_theta 为某机器人与其他机器人的角度差
   double k_v = 0.1;
 
@@ -45,10 +41,11 @@ int main(int argc, char** argv)
   Eigen::VectorXd del_y(swarm_robot.robot_num);
   Eigen::VectorXd del_theta(swarm_robot.robot_num);
 
-  /* 首先获取群体机器人的姿态信息 */
+  /* 首先获取群体机器人的信息 */
+  // 机器人当前位姿
   std::vector<std::array<double, 3>> current_robot_pose(swarm_robot.robot_num);
-
-  swarm_robot.getRobotPose(current_robot_pose);  // 获取机器人姿态信息
+  // 机器人当前速度
+  std::vector<std::array<double, 2>> current_robot_speed(swarm_robot.robot_num);
 
   /*编队*/
   Eigen::VectorXd tar_x(swarm_robot.robot_num);
@@ -94,6 +91,14 @@ int main(int argc, char** argv)
   }
 
   swarm_robot.pos_control(tar_x, tar_y, lap, true);
+
+  double tar_x_speed = 0.2;
+  double tar_y_speed = 0;
+
+  
+  int time = 5*1000;
+
+  swarm_robot.speed_control(tar_x_speed, tar_y_speed,time);
 
   swarm_robot.stopRobot();
 

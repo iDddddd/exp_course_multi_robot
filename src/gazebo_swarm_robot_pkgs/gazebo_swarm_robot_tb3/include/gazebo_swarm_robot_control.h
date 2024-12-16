@@ -19,6 +19,7 @@
 #include <vector>
 #include <array>
 #include <cmath>
+#include <chrono>   
 
 using std::cout;
 using std::endl;
@@ -139,6 +140,15 @@ public:
      * @param absolute 是否使用绝对位置控制
      */
     void pos_control(const Eigen::VectorXd tar_x, const Eigen::VectorXd tar_y, const Eigen::MatrixXd lap, bool absolute = false);
+
+    /**
+     * @brief 速度控制
+     * @param tar_x_speed 期望速度x
+     * @param tar_y_speed 期望速度y
+     * @param time 持续时间
+     */
+    void speed_control(const double tar_x_speed,const double tar_y_speed,int time);
+
 
 private:
     // ROS tf listener
